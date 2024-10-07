@@ -66,4 +66,37 @@ declare module "elea-di" {
      * The default container instance for the application.
      */
     export const container: Container;
+
+    /**
+     * The Value class is a simple injectable that wraps a value.
+     * It extends the Injectable class to allow it to be managed by the container.
+     */
+    export class Value extends Injectable {
+        /**
+         * An array of dependencies for this injectable class.
+         * In this case, there are no dependencies.
+         *
+         * @type {Array}
+         */
+        static _dependencies;
+
+        /**
+         * Creates an instance of the Value class.
+         *
+         * @param {any} value The value to be wrapped by this class.
+         */
+        constructor(value: any) {
+            super();
+            return value; // Return the wrapped value.
+        }
+    }
+
+    /**
+     * A function to register a value as an injectable in the container
+     * and retrieve its instance.
+     *
+     * @param {any} value The value to register and retrieve.
+     * @returns {any} The instance of the Value class containing the provided value.
+     */
+    export function value(value: any): any;
 }

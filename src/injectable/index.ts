@@ -28,7 +28,7 @@ export class Injectable extends Singleton {
      * @type {Array<typeof Injectable | new (...args: any[]) => Injectable>}
      */
     static _dependencies: Array<
-        typeof Injectable | (new (...args: any[]) => Injectable)
+        typeof Injectable | (new (...args: any[]) => Injectable) | any
     >;
 
     /**

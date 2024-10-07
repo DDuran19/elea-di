@@ -1,4 +1,5 @@
 import Singleton from "../singleton/index.js";
+import { Value } from "../value/index.js";
 /**
  * The Container class is responsible for managing dependency injection.
  * It handles the registration and resolution of injectable classes.
@@ -74,6 +75,9 @@ class Container {
         // 3. Get dependencies of the class
         const dependencies = _injectable._dependencies;
         if (!dependencies || !dependencies.length) {
+            if (this._isValueRegistered(_injectable)) {
+                return Value.getValue(_injectable);
+            }
             return _injectable.getInstance(_injectable);
         }
         // 4. Recursively check for dependencies if they have been registered and instantiated
@@ -89,10 +93,20 @@ class Container {
      * @throws {Error} Throws an error if the class is not registered.
      */
     _checkRegistration(injectable) {
+        if (this._isValueRegistered(injectable)) {
+            return;
+        }
         if (!this._registeredClasses.has(injectable)) {
             const message = `Class ${injectable.name} is not registered. Add it to the container. \`container.register(${injectable.name})\`); `;
             throw new Error(message);
         }
+    }
+    _isValueRegistered(injectable) {
+        const _value = JSON.stringify(injectable);
+        if (Value.hasValue(_value)) {
+            return true;
+        }
+        return false;
     }
     /**
      * Checks if the injectable class has been instantiated.
