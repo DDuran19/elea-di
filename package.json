@@ -1,11 +1,13 @@
 {
     "name": "elea-di",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "author": "Denver James Duran <denver02.james14@gmail.com> (https://github.com/dduran19)",
     "scripts": {
         "dev": "tsc --watch"
     },
     "type": "module",
+    "main": "/dist/index.js",
+    "types": "dist/index.d.ts",
     "repository": {
         "url": "git+https://github.com/dduran19/elea-di.git"
     },
@@ -13,7 +15,6 @@
         "@dduran19:registry": "https://npm.pkg.github.com"
     },
     "description": "**Elea** is a lightweight Inversion of Control (IoC) and Dependency Injection (DI) library, written in TypeScript, with zero external dependencies. It's designed to be minimal and easy to integrate into your TypeScript or JavaScript projects.",
-    "main": "/dist/index.js",
     "keywords": [
         "IOC",
         "DI",
