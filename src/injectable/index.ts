@@ -37,7 +37,7 @@ export class Injectable extends Singleton {
      * @type {true}
      * @constant
      */
-    static injectable = true;
+    static injectable: true = true;
 }
 
 export default Injectable;
