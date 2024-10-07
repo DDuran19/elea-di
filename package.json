@@ -1,0 +1,13 @@
+{
+    "name": "elea-di",
+    "version": "0.0.1",
+    "author": {
+        "name": "Denver James Duran",
+        "email": "denver02.james14@gmail.com",
+        "url": "https://github.com/dduran19"
+    },
+    "scripts": {
+        "dev": "tsc --watch"
+    },
+    "type": "module"
+}
