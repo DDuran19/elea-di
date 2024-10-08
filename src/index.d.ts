@@ -182,7 +182,7 @@ declare module "elea-di" {
      * The Value class is a simple injectable that wraps a value.
      * It extends the Injectable class to allow it to be managed by the container.
      */
-    export class Value<T extends any = any> extends Injectable {
+    export class Value extends Injectable {
         /**
          * A constant indicating that the class is injectable.
          *
@@ -190,13 +190,6 @@ declare module "elea-di" {
          * @constant
          */
         static injectable: true;
-
-        /**
-         * Creates an instance of the Value class.
-         *
-         * @param {any} value The value to be wrapped by this class.
-         */
-        constructor(private readonly value: T);
 
         /**
          * Adds a value to the Value class' instances map.
