@@ -40,7 +40,7 @@ export class Value {
      * @param {number} key - The hashed key of the value to retrieve.
      * @returns {any} - The value associated with the key, or undefined if not found.
      */
-    static get(key: number) {
+    static get(key: number): any {
         return Value._registeredValues.get(key);
     }
 }
@@ -49,11 +49,13 @@ export class Value {
  * Registers a value in the container and adds it to the Value class's map.
  * @template T
  * @param {T} value - The value to register and add.
+ * @param {`edi-${string}`} [customKey] - The custom key to use for the value.
+ * The custom key must start with "edi-" when using TypeScript.
  * @returns {T} - The same value passed as input.
  */
-export function value<T extends any>(value: T): T {
+export function value<T extends any>(value: T, customKey?: `edi-${string}`): T {
     container.register(Value);
-    Value.add(value);
+    Value.add(customKey ? customKey : value);
     return value;
 }
 

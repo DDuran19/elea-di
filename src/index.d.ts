@@ -198,17 +198,22 @@ declare module "elea-di" {
      * 
      * // It returns the same object as what you provided,
      * // no worries about losing type-safety or functionality.
+     * 
+     * // src/schema.ts
+     * 
+     * function createSchema () {
      * const schema = value(z.object({
      *     foo: z.string(),
      *     baz: z.string(),
-     * }));
+     * }),"edi-schema"); // key is required for values that are outside of scope of the class.
+     }
      *
      * 
      * // src/my-service.ts
      * import { connectionString } from "../config";
      * 
      * class MyService extends Injectable {
-         static _dependencies = [connectionString, schema]; 
+         static _dependencies = [connectionString, "edi-schema"]; 
 
          constructor(
              private readonly _connectionString: string,
