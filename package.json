@@ -1,9 +1,10 @@
 {
     "name": "elea-di",
-    "version": "0.0.5",
+    "version": "0.0.6",
     "author": "Denver James Duran <denver02.james14@gmail.com> (https://github.com/dduran19)",
     "scripts": {
         "dev": "tsc --watch",
+        "test": "vitest",
         "build": "tsc"
     },
     "type": "module",
@@ -24,5 +25,9 @@
     "bugs": {
         "url": "https://github.com/dduran19/elea-di/issues"
     },
-    "homepage": "https://github.com/dduran19/elea-di#readme"
+    "homepage": "https://github.com/dduran19/elea-di#readme",
+    "devDependencies": {
+        "@types/node": "^22.7.5",
+        "vitest": "^2.1.2"
+    }
 }

@@ -1,89 +1,60 @@
 import container from "../container/index.js";
-import Injectable from "../injectable/index.js";
+import simpleHash from "../utils/index.js";
 
 /**
- * The Value class is a simple injectable that wraps a value.
- * It extends the Injectable class to allow it to be managed by the container.
+ * Class for managing values using a hash map.
  */
-export class Value<T extends any = any> extends Injectable {
-    static _instances: Map<any, Value> = new Map();
+export class Value {
+    /**
+     * Flag indicating that this class is injectable.
+     * @type {boolean}
+     */
+    static injectable = true;
 
     /**
-     * A constant indicating that the class is injectable.
-     *
-     * @type {true}
-     * @constant
+     * Map of registered values keyed by their hash.
+     * @type {Map<number, any>}
      */
-    static injectable: true = true;
+    static _registeredValues: Map<number, any> = new Map();
 
     /**
-     * Creates an instance of the Value class.
-     *
-     * @param {any} value The value to be wrapped by this class.
+     * Adds a value to the map, hashed by its content.
+     * @param {any} value - The value to be added.
      */
-    constructor(private readonly value: T) {
-        super();
-        Value._instances.set(value, this);
-        return value as Value<T>; // Return the wrapped value.
+    static add(value: any) {
+        Value._registeredValues.set(simpleHash(value), value);
     }
 
     /**
-     * Adds a value to the Value class' instances map.
-     * If the value does not already exist in the map, it is added and an instance of the Value class is created.
-     * If the value already exists, it is returned from the existing instance.
-     *
-     * @param {typeof Value} instantiator The Value class to create an instance of if the value does not exist.
-     * @param {T} value The value to add to the map.
-     * @returns {T} The instance of the Value class containing the provided value.
+     * Checks if the map contains a value with the given key.
+     * @param {any} key - The key to be checked (before hashing).
+     * @returns {false | number} - Returns the hashed key if it exists, otherwise false.
      */
-    static add<T extends any>(instantiator: typeof Value, value: T): T {
-        const _value = JSON.stringify(value);
-        if (!Value._instances.has(_value)) {
-            Value._instances.set(_value, new instantiator(value));
-        }
-        return Value._instances.get(_value) as T;
+    static has(key: any): false | number {
+        const hashed_key = simpleHash(key);
+        return Value._registeredValues.has(hashed_key) ? hashed_key : false;
     }
 
     /**
-     * Checks if a value exists in the Value class' instances map.
-     *
-     * @param {string} value The value to check for.
-     * @returns {boolean} True if the value exists, false otherwise.
+     * Retrieves a value from the map by its hashed key.
+     * @param {number} key - The hashed key of the value to retrieve.
+     * @returns {any} - The value associated with the key, or undefined if not found.
      */
-    static hasValue(value: string): boolean {
-        return Value._instances.has(value);
-    }
-
-    /**
-     * Retrieves the instance of the Value class containing the provided value.
-     *
-     * @param {T} value The value to retrieve the instance for.
-     * @returns {T} The instance of the Value class containing the provided value.
-     */
-    static getValue<T extends any>(value: T): T {
-        return Value._instances.get(JSON.stringify(value)) as T;
-    }
-
-    /**
-     * Retrieves the wrapped value.
-     *
-     * @returns {any} The wrapped value.
-     */
-    get data(): any {
-        return this.value;
+    static get(key: number) {
+        return Value._registeredValues.get(key);
     }
 }
 
 /**
- * A function to register a value as an injectable in the container
- * and retrieve its instance.
- *
- * @param {any} value The value to register and retrieve.
- * @returns {any} The instance of the Value class containing the provided value.
+ * Registers a value in the container and adds it to the Value class's map.
+ * @template T
+ * @param {T} value - The value to register and add.
+ * @returns {T} - The same value passed as input.
  */
 export function value<T extends any>(value: T): T {
     container.register(Value);
-    return Value.add(Value, value);
+    Value.add(value);
+    return value;
 }
 
 export default value;

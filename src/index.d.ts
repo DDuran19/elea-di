@@ -54,6 +54,9 @@ declare module "elea-di" {
      * Classes that extend Injectable must declare their dependencies using a static `_dependencies` array.
      * The order of dependencies in the array must match the constructor parameter order.
      *
+     * **WARNING** : This class will make your class a SINGLETON. if you don't want this behavior,
+     * please submit a ticket on [GitHub](https://github.com/DDuran19/elea-di/issues) for a feature request
+     *
      * @example
      * // Define a class that extends Injectable
      * class LoggingService extends Injectable {
@@ -182,61 +185,45 @@ declare module "elea-di" {
      * The Value class is a simple injectable that wraps a value.
      * It extends the Injectable class to allow it to be managed by the container.
      */
-    export class Value extends Injectable {
-        /**
-         * A constant indicating that the class is injectable.
-         *
-         * @type {true}
-         * @constant
-         */
-        static injectable: true;
+    class Value extends Injectable {}
 
-        /**
-         * Adds a value to the Value class' instances map.
-         * If the value does not already exist in the map, it is added and an instance of the Value class is created.
-         * If the value already exists, it is returned from the existing instance.
-         *
-         * @param {typeof Value} instantiator The Value class to create an instance of if the value does not exist.
-         * @param {T} value The value to add to the map.
-         * @returns {T} The instance of the Value class containing the provided value.
-         */
-        static add<T extends any>(instantiator: typeof Value, value: T): T;
-
-        /**
-         * Checks if a value exists in the Value class' instances map.
-         *
-         * @param {string} value The value to check for.
-         * @returns {boolean} True if the value exists, false otherwise.
-         */
-        static hasValue(value: string): boolean;
-
-        /**
-         * Retrieves the instance of the Value class containing the provided value.
-         *
-         * @param {T} value The value to retrieve the instance for.
-         * @returns {T} The instance of the Value class containing the provided value.
-         */
-        static getValue<T extends any>(value: T): T;
-
-        /**
-         * Retrieves the wrapped value.
-         *
-         * @returns {any} The wrapped value.
-         */
-        get data(): any;
-    }
     /**
-     * A function to register a value as an injectable in the container
+     * A function to automatically register a value as an injectable in the container
      * and retrieve its instance.
      *
      * @example
      * ```typescript
+     * // src/config/index.ts
+     * export const connectionString = value("db://localhost:27017");
+     * 
+     * // It returns the same object as what you provided,
+     * // no worries about losing type-safety or functionality.
+     * const schema = value(z.object({
+     *     foo: z.string(),
+     *     baz: z.string(),
+     * }));
      *
-     * const connectionString = value("db://localhost:27017");
+     * 
+     * // src/my-service.ts
+     * import { connectionString } from "../config";
+     * 
+     * class MyService extends Injectable {
+         static _dependencies = [connectionString, schema]; 
+
+         constructor(
+             private readonly _connectionString: string,
+             private readonly _schema: z.infer<typeof schema>
+         ) {
+             super();
+         }
+     }
      * ```
      *
-     * @param {any} value The value to register and retrieve.
-     * @returns {any} The instance of the Value class containing the provided value.
+     * 
+     * 
+     * @template T
+     * @param {T} value - The value to register and add.
+     * @returns {T} - The same value passed as input.
      */
     export function value<T extends any>(value: T): T;
 }

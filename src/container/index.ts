@@ -14,7 +14,7 @@ class Container {
      * @type {Container}
      */
     private static _instance: Container;
-
+    private _debug: boolean = false;
     /**
      * A Map that stores the registered classes.
      * The key is the constructor of the class, and the value is the Injectable class.
@@ -82,7 +82,12 @@ class Container {
     ): T {
         const _injectable = injectable as unknown as typeof Injectable;
         // 1. Check if the class has been registered
-        this._checkRegistration(_injectable);
+        const key = this._checkRegistration(_injectable);
+
+        if (typeof key === "number") {
+            return Value.get(key) as unknown as T;
+        }
+
         // 2. Check if the class has been instantiated
         const isInstantiated = this._checkInstantiation(_injectable);
         if (isInstantiated) return this._getInstance<T>(_injectable);
@@ -92,10 +97,6 @@ class Container {
         const dependencies = _injectable._dependencies;
 
         if (!dependencies || !dependencies.length) {
-            if (this._isValueRegistered(_injectable)) {
-                return Value.getValue(_injectable) as unknown as T;
-            }
-
             return _injectable.getInstance(_injectable) as T;
         }
 
@@ -116,23 +117,25 @@ class Container {
      * @param {typeof Injectable} injectable The injectable class to check.
      * @throws {Error} Throws an error if the class is not registered.
      */
-    private _checkRegistration(injectable: typeof Injectable): void {
-        if (this._isValueRegistered(injectable)) {
-            return;
-        }
-
+    private _checkRegistration(
+        injectable: typeof Injectable
+    ): number | undefined {
         if (!this._registeredClasses.has(injectable)) {
-            const message = `Class ${injectable.name} is not registered. Add it to the container. \`container.register(${injectable.name})\`); `;
+            const isValue = this.isValue(injectable);
+            if (isValue) {
+                return isValue;
+            }
+            const message = `${
+                injectable?.name || injectable
+            } is not registered. Add it to the container. \`container.register(${
+                injectable?.name
+            })\`); `;
             throw new Error(message);
         }
     }
 
-    private _isValueRegistered(injectable: typeof Injectable): boolean {
-        const _value = JSON.stringify(injectable);
-        if (Value.hasValue(_value)) {
-            return true;
-        }
-        return false;
+    private isValue(injectable: typeof Injectable): number | false {
+        return Value.has(injectable);
     }
 
     /**
@@ -159,13 +162,29 @@ class Container {
     private _getInstance<T extends Injectable>(
         injectable: typeof Injectable
     ): T {
-        const instance = Singleton.get(injectable);
-        if (!instance) {
-            throw new Error(
-                `Class ${injectable.name} is not instantiated. Add it to the container. \`container.register(${injectable.name})\`); `
-            );
+        if (injectable?.injectable) {
+            const instance = Singleton.get(injectable);
+
+            if (!instance) {
+                throw new Error(
+                    `Class ${injectable?.name} is not instantiated. Add it to the container. \`container.register(${injectable?.name})\`); `
+                );
+            }
+            return instance as unknown as T;
         }
-        return instance as unknown as T;
+
+        throw new Error(
+            `Class ${injectable?.name} is not instantiated. Add it to the container. \`container.register(${injectable?.name})\`); `
+        );
+    }
+
+    debug(status: boolean = true): this {
+        this._debug = status;
+        return this;
+    }
+
+    _showDebug(message: any): void {
+        this._debug && console.log(message);
     }
 }
 
