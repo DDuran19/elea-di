@@ -222,13 +222,16 @@ declare module "elea-di" {
              super();
          }
      }
-     * ```
-     *
-     * 
-     * 
+    /**
+     * Registers a value in the container and adds it to the Value class's map.
      * @template T
      * @param {T} value - The value to register and add.
+     * @param {`edi-${string}`} [customKey] - The custom key to use for the value.
+     * The custom key must start with "edi-" when using TypeScript.
      * @returns {T} - The same value passed as input.
      */
-    export function value<T extends any>(value: T): T;
+    export function value<T extends any>(
+        value: T,
+        customKey?: `edi-${string}`
+    ): T;
 }
