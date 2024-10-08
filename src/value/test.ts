@@ -3,6 +3,34 @@ import Injectable from "../injectable/index.js";
 import value from "./index.js";
 import { describe, expect, it } from "vitest";
 
+function reallyOutsideScope() {
+    const name = value(
+        {
+            first: "Elea",
+            last: "Duran",
+        },
+        "edi-name"
+    );
+    return name;
+}
+
+class Service extends Injectable {
+    static _dependencies = ["edi-service"];
+
+    constructor(readonly service: string) {
+        super();
+    }
+}
+
+function functionAndServiceIsOutside() {
+    const service = () => value("db://localhost:27017", "edi-service");
+
+    const deepNestedFunction = function () {
+        return service();
+    };
+
+    return deepNestedFunction();
+}
 describe("Value class", () => {
     const connectionString = value("db://localhost:27017");
     const mySchema = value({
@@ -40,6 +68,14 @@ describe("Value class", () => {
             super();
         }
     }
+
+    class Baby extends Injectable {
+        static _dependencies = ["edi-name"];
+
+        constructor(readonly name: string) {
+            super();
+        }
+    }
     it("should instantiate the service", () => {
         const service = container.register(MyService).resolve(MyService);
 
@@ -49,9 +85,22 @@ describe("Value class", () => {
     });
 
     it("should instantiate a class whose dependencies are on different scope", () => {
-        const age = outsideScope();
+        outsideScope();
         const person = container.register(Person).resolve(Person);
         expect(person).toBeInstanceOf(Person);
         expect(person.age).toBe(21);
+
+        reallyOutsideScope();
+        const baby = container.register(Baby).resolve(Baby);
+        expect(baby).toBeInstanceOf(Baby);
+        expect(baby.name).toStrictEqual({
+            first: "Elea",
+            last: "Duran",
+        });
+
+        const outsideFunctionAndService = functionAndServiceIsOutside();
+        const service = container.register(Service).resolve(Service);
+        expect(service).toBeInstanceOf(Service);
+        expect(service.service).toBe("db://localhost:27017");
     });
 });

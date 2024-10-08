@@ -76,10 +76,9 @@ declare module "elea-di" {
          *
          * @type {Array<typeof Injectable | new (...args: any[]) => Injectable>}
          */
-        static _dependencies: (
-            | typeof Injectable
-            | (new (...args: any[]) => Injectable)
-        )[];
+        static _dependencies: Array<
+            typeof Injectable | (new (...args: any[]) => Injectable) | any
+        >;
 
         /**
          * A constant indicating that the class is injectable.
