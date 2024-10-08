@@ -122,6 +122,7 @@ class Container {
     ): number | undefined {
         if (!this._registeredClasses.has(injectable)) {
             const isValue = this.isValue(injectable);
+
             if (isValue) {
                 return isValue;
             }

@@ -21,8 +21,11 @@ export class Value {
      * Adds a value to the map, hashed by its content.
      * @param {any} value - The value to be added.
      */
-    static add(value: any) {
-        Value._registeredValues.set(simpleHash(value), value);
+    static add(value: any, customKey?: `edi-${string}`) {
+        Value._registeredValues.set(
+            customKey ? simpleHash(customKey) : simpleHash(value),
+            value
+        );
     }
 
     /**
@@ -55,7 +58,7 @@ export class Value {
  */
 export function value<T extends any>(value: T, customKey?: `edi-${string}`): T {
     container.register(Value);
-    Value.add(customKey ? customKey : value);
+    Value.add(value, customKey);
     return value;
 }
 

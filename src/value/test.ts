@@ -28,11 +28,30 @@ describe("Value class", () => {
         }
     }
 
+    function outsideScope() {
+        const age = value(21, "edi-age");
+        return age;
+    }
+
+    class Person extends Injectable {
+        static _dependencies = ["edi-age"];
+
+        constructor(readonly age: number) {
+            super();
+        }
+    }
     it("should instantiate the service", () => {
         const service = container.register(MyService).resolve(MyService);
 
         expect(service).toBeInstanceOf(MyService);
         expect(service.confirm()).toBe(true);
         expect(service.connectionString).toBe(connectionString);
+    });
+
+    it("should instantiate a class whose dependencies are on different scope", () => {
+        const age = outsideScope();
+        const person = container.register(Person).resolve(Person);
+        expect(person).toBeInstanceOf(Person);
+        expect(person.age).toBe(21);
     });
 });
