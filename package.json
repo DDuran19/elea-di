@@ -3,11 +3,12 @@
     "version": "0.0.5",
     "author": "Denver James Duran <denver02.james14@gmail.com> (https://github.com/dduran19)",
     "scripts": {
-        "dev": "tsc --watch"
+        "dev": "tsc --watch",
+        "build": "tsc"
     },
     "type": "module",
     "main": "/dist/index.js",
-    "types": "dist/index.d.ts",
+    "types": "src/index.d.ts",
     "repository": {
         "url": "git+https://github.com/dduran19/elea-di.git"
     },
