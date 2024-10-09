@@ -31,6 +31,8 @@ export class Injectable extends Singleton {
         typeof Injectable | (new (...args: any[]) => Injectable) | any
     >;
 
+    static _runTimeDependencies: Array<any>;
+
     /**
      * A constant indicating that the class is injectable.
      *

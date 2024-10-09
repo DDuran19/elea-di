@@ -1,6 +1,6 @@
 {
     "name": "elea-di",
-    "version": "0.0.8-alpha.0",
+    "version": "0.0.8-beta",
     "author": "Denver James Duran <denver02.james14@gmail.com> (https://github.com/dduran19)",
     "scripts": {
         "dev": "tsc --watch",

@@ -1,7 +1,6 @@
 import { Injectable } from "../injectable/index.js";
 import Singleton from "../singleton/index.js";
 import simpleHash from "../utils/index.js";
-import { Value } from "../value/index.js";
 
 /**
  * The Container class is responsible for managing dependency injection.
@@ -24,7 +23,14 @@ export class Container {
      */
     private _registeredClasses: Map<Function, typeof Injectable>;
 
-    private _registeredValues: Map<number, any>;
+    /**
+     * A Map that stores the registered values.
+     * The key is the hash key of the value, and the value is the value itself.
+     * Uses proxy under the hood to prevent errors during build time.
+     * @private
+     * @type {Map<number, { value: any }>}
+     */
+    private _registeredValues: Map<number, { value: any }>;
 
     /**
      * Private constructor to prevent instantiation.
@@ -32,7 +38,7 @@ export class Container {
      */
     constructor() {
         this._registeredClasses = new Map<Function, typeof Injectable>();
-        this._registeredValues = new Map<number, any>();
+        this._registeredValues = new Map<number, { value: any }>();
     }
 
     /**
@@ -73,6 +79,14 @@ export class Container {
         return this;
     }
 
+    /**
+     * Registers an injectable class to the container and resolves it.
+     * This is a convenience method to register and resolve an injectable class in one step.
+     *
+     * @param {new (...args: any) => Injectable} injectable The class to register and resolve.
+     * @returns {T} The instance of the injectable class.
+     * @template T
+     */
     registerAndResolve<T extends Injectable = Injectable>(
         injectable: new (...args: any) => T
     ): T {
@@ -80,9 +94,19 @@ export class Container {
         return this.resolve(injectable);
     }
 
+    /**
+     * Registers a value in the container and assigns it a hash key.
+     * This is useful for registering simple values that are not classes.
+     * The hash key is generated using the simpleHash function from the utils module.
+     * If the second argument is provided, it will be used as the hash key.
+     * @param {*} value The value to register.
+     * @param {`edi-${string}`} [customKey] The custom key to use for the value.
+     * @returns {this} Returns the container instance for method chaining.
+     */
     registerRuntimeValue(value: any, customKey?: `edi-${string}`): this {
         const hashedKey = customKey ? simpleHash(customKey) : simpleHash(value);
-        this._registeredValues.set(hashedKey, value);
+        const valueProxy = new Proxy({ value }, {});
+        this._registeredValues.set(hashedKey, valueProxy);
         return value;
     }
 
@@ -103,7 +127,7 @@ export class Container {
 
         // 2. Check if the class has been instantiated
         if (typeof key === "number") {
-            return this._registeredValues.get(key) as T;
+            return this._registeredValues.get(key)!.value as T;
         }
         const isInstantiated = this._checkInstantiation(_injectable);
         if (isInstantiated) return this._getInstance<T>(_injectable);
