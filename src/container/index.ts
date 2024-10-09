@@ -73,6 +73,13 @@ class Container {
         return this;
     }
 
+    registerAndResolve<T extends Injectable = Injectable>(
+        injectable: new (...args: any) => T
+    ): T {
+        this.register(injectable);
+        return this.resolve(injectable);
+    }
+
     registerRuntimeValue(value: any, customKey?: `edi-${string}`): this {
         const hashedKey = customKey ? simpleHash(customKey) : simpleHash(value);
         this._registeredValues.set(hashedKey, value);
