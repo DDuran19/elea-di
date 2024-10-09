@@ -9,7 +9,7 @@ export class Value {
      * Flag indicating that this class is injectable.
      * @type {boolean}
      */
-    static injectable = true;
+    static injectable: boolean = true;
 
     /**
      * Map of registered values keyed by their hash.

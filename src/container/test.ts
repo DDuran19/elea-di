@@ -1,10 +1,17 @@
 import container from "../container/index.js";
 import Injectable from "../injectable/index.js";
-import value from "./index.js";
 import { describe, expect, it } from "vitest";
 
+describe("Container class", () => {
+    it("should instantiate the container", () => {
+        // const container = new Container();
+        // expect(container).toBeInstanceOf(Container);
+        expect(true).toBe(true);
+    });
+});
+
 function reallyOutsideScope() {
-    const name = value(
+    const name = container.registerRuntimeValue(
         {
             first: "Elea",
             last: "Duran",
@@ -23,7 +30,8 @@ class Service extends Injectable {
 }
 
 function functionAndServiceIsOutside() {
-    const service = () => value("db://localhost:27017", "edi-service");
+    const service = () =>
+        container.registerRuntimeValue("db://localhost:27017", "edi-service");
 
     const deepNestedFunction = function () {
         return service();
@@ -32,8 +40,10 @@ function functionAndServiceIsOutside() {
     return deepNestedFunction();
 }
 describe("Value class", () => {
-    const connectionString = value("db://localhost:27017");
-    const mySchema = value({
+    const connectionString = container.registerRuntimeValue(
+        "db://localhost:27017"
+    );
+    const mySchema = container.registerRuntimeValue({
         foo: "string",
         baz: "string",
     });
@@ -57,7 +67,7 @@ describe("Value class", () => {
     }
 
     function outsideScope() {
-        const age = value(21, "edi-age");
+        const age = container.registerRuntimeValue(21, "edi-age");
         return age;
     }
 

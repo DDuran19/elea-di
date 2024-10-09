@@ -1,5 +1,6 @@
 import { Injectable } from "../injectable/index.js";
 import Singleton from "../singleton/index.js";
+import simpleHash from "../utils/index.js";
 import { Value } from "../value/index.js";
 
 /**
@@ -23,12 +24,15 @@ class Container {
      */
     private _registeredClasses: Map<Function, typeof Injectable>;
 
+    private _registeredValues: Map<number, any>;
+
     /**
      * Private constructor to prevent instantiation.
      * Initializes the `_registeredClasses` Map.
      */
     private constructor() {
         this._registeredClasses = new Map<Function, typeof Injectable>();
+        this._registeredValues = new Map<number, any>();
     }
 
     /**
@@ -69,6 +73,12 @@ class Container {
         return this;
     }
 
+    registerRuntimeValue(value: any, customKey?: `edi-${string}`): this {
+        const hashedKey = customKey ? simpleHash(customKey) : simpleHash(value);
+        this._registeredValues.set(hashedKey, value);
+        return value;
+    }
+
     /**
      * Resolves an injectable to an instance.
      * If the class has not been instantiated, it will resolve its dependencies, instantiate the class, and return the instance.
@@ -83,9 +93,8 @@ class Container {
         const _injectable = injectable as unknown as typeof Injectable;
         // 1. Check if the class has been registered
         const key = this._checkRegistration(_injectable);
-
         if (typeof key === "number") {
-            return Value.get(key) as unknown as T;
+            return this._registeredValues.get(key) as T;
         }
 
         // 2. Check if the class has been instantiated
@@ -99,7 +108,6 @@ class Container {
         if (!dependencies || !dependencies.length) {
             return _injectable.getInstance(_injectable) as T;
         }
-
         // 4. Recursively check for dependencies if they have been registered and instantiated
         const dependencyInstances = dependencies.map((dependency) => {
             return this.resolve(dependency);
@@ -121,6 +129,7 @@ class Container {
         injectable: typeof Injectable
     ): number | undefined {
         if (!this._registeredClasses.has(injectable)) {
+            console.log("Checking for registration: ", injectable);
             const isValue = this.isValue(injectable);
 
             if (isValue) {
@@ -136,7 +145,11 @@ class Container {
     }
 
     private isValue(injectable: typeof Injectable): number | false {
-        return Value.has(injectable);
+        const key = simpleHash(injectable);
+        if (this._registeredValues.has(key)) {
+            return key;
+        }
+        return false;
     }
 
     /**
