@@ -8,7 +8,7 @@ import { Value } from "../value/index.js";
  * It handles the registration and resolution of injectable classes.
  * Dependencies are resolved recursively, ensuring that each class's dependencies are instantiated before the class itself.
  */
-class Container {
+export class Container {
     /**
      * Singleton instance of the Container.
      * @private
@@ -30,7 +30,7 @@ class Container {
      * Private constructor to prevent instantiation.
      * Initializes the `_registeredClasses` Map.
      */
-    private constructor() {
+    constructor() {
         this._registeredClasses = new Map<Function, typeof Injectable>();
         this._registeredValues = new Map<number, any>();
     }
@@ -100,11 +100,11 @@ class Container {
         const _injectable = injectable as unknown as typeof Injectable;
         // 1. Check if the class has been registered
         const key = this._checkRegistration(_injectable);
+
+        // 2. Check if the class has been instantiated
         if (typeof key === "number") {
             return this._registeredValues.get(key) as T;
         }
-
-        // 2. Check if the class has been instantiated
         const isInstantiated = this._checkInstantiation(_injectable);
         if (isInstantiated) return this._getInstance<T>(_injectable);
 

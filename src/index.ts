@@ -1,9 +1,10 @@
 import container from "./container/index.js";
+import { Container } from "./container/index.js";
 import Injectable from "./injectable/index.js";
 import Singleton from "./singleton/index.js";
 import value from "./value/index.js";
 
-export { container, Injectable, Singleton, value };
+export { container, Injectable, Singleton, value, Container };
 
 const colors = {
     reset: "\x1b[0m",
