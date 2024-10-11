@@ -64,17 +64,17 @@ export class ServerlessContainer {
         return this;
     }
 
-    resolve<T extends new (...args: any[]) => ServerlessInjectable>(
-        Class: T,
-        dependency?: boolean
-    ): InstanceType<T>;
-    resolve<T extends any>(Class: T, dependency?: boolean): T {
+    resolve<T>(
+        Class: T
+    ): T extends new (...args: any[]) => ServerlessInjectable
+        ? InstanceType<T>
+        : T {
         const isClass = this._isClass(Class);
 
         if (!isClass) {
             const value = this._instantiatedClasses.get(Class as string);
             if (value) {
-                return (value as ServerlessValue).__value__ as T;
+                return (value as ServerlessValue).__value__;
             }
 
             throw new Error(
