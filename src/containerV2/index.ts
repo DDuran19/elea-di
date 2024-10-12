@@ -11,17 +11,22 @@ function lowercase(str: string | ServerlessInjectable): string {
     );
 }
 
-export abstract class ServerlessInjectable {
-    static __key__: string = lowercase(this.name || this.constructor.name);
-    static __dependencies__: (string | ServerlessInjectable)[];
-
+export class ServerlessInjectable {
+    static __key__ = lowercase(this.name);
+    static __dependencies__?: any[];
     constructor() {}
 }
 
 export class ServerlessValue {
-    constructor(public __value__: any, public __key__: string) {
+    __value__: any;
+    __key__: string;
+
+    constructor(__value__: any, __key__: string) {
+        this.__key__ = __key__;
+        this.__value__ = __value__;
+
         return new Proxy(this, {
-            get(target, prop, receiver) {
+            get(target: any, prop: string | symbol, receiver: any) {
                 if (prop === "__value__") {
                     return target.__value__;
                 }
@@ -39,32 +44,20 @@ export class ServerlessValue {
         });
     }
 }
+
 export class ServerlessContainer {
-    private _registeredClasses: Map<
-        string,
-        new (...args: any[]) => ServerlessInjectable
-    > = new Map();
+    private _registeredClasses: Map<string, any> = new Map();
+    private _instantiatedClasses: Map<string, any> = new Map();
 
-    private _instantiatedClasses: Map<
-        string,
-        ServerlessInjectable | ServerlessValue
-    > = new Map();
-
-    get registeredClasses(): Map<
-        string,
-        new (...args: any[]) => ServerlessInjectable
-    > {
+    get registeredClasses() {
         return this._registeredClasses;
     }
 
-    get instantiatedClasses(): Map<
-        string,
-        ServerlessInjectable | ServerlessValue
-    > {
+    get instantiatedClasses() {
         return this._instantiatedClasses;
     }
 
-    registerClass(Class: new (...args: any[]) => ServerlessInjectable): this {
+    registerClass(Class: any): this {
         try {
             if (!("__key__" in Class) && !("__dependencies__" in Class)) {
                 console.warn(
@@ -73,7 +66,6 @@ export class ServerlessContainer {
                     } is most likely not a ServerlessInjectable. Check if you extended ServerlessInjectable correctly.`
                 );
             }
-
             this._registeredClasses.set(
                 lowercase(Class.prototype.constructor.name),
                 Class
@@ -85,79 +77,66 @@ export class ServerlessContainer {
         }
     }
 
-    registerRuntimeValue(value: any, key: string) {
+    registerRuntimeValue(value: any, key: string): this {
         const lowercased = lowercase(key);
         const newValue = new ServerlessValue(value, lowercased);
         this._instantiatedClasses.set(lowercased, newValue);
         return this;
     }
 
-    injectRuntimeValue<T = any>(key: string, value: T): T {
+    injectRuntimeValue(key: string, value: any): any {
         const lowercased = lowercase(key);
         if (!this._instantiatedClasses.has(lowercased)) {
             throw new Error(
                 `Value ${key} is not instantiated. Add it to the container. \`container.registerRuntimeValue( {},${key})\`); `
             );
         }
-        const instance = this._instantiatedClasses.get(
-            lowercased
-        ) as ServerlessValue;
+        const instance = this._instantiatedClasses.get(lowercased);
         instance.__value__ = value;
         this._instantiatedClasses.set(lowercased, instance);
         return value;
     }
 
-    resolve<T>(
-        Class: T
-    ): T extends new (...args: any[]) => ServerlessInjectable
-        ? InstanceType<T>
-        : T {
+    resolve(Class: any): any {
         const isClass = this._isClass(Class);
-
         if (!isClass) {
-            const value = this._instantiatedClasses.get(
-                lowercase(Class as string)
-            );
+            const value = this._instantiatedClasses.get(lowercase(Class));
             if (value) {
-                return (value as ServerlessValue).__value__;
+                return value.__value__;
             }
-
             throw new Error(
                 `Class ${
-                    // @ts-expect-error
                     Class.name || Class
                 } is not registered in the container`
             );
         }
-
-        // @ts-expect-error
-        const dependencies: string[] = Class.__dependencies__;
-
-        const dependenciesInstance =
-            dependencies?.map((dep) => {
-                const lowercased = lowercase(dep);
-                const registered = this._registeredClasses.get(lowercased);
-                const instantiated = this._instantiatedClasses.get(lowercased);
-                if (!registered && !instantiated) {
-                    throw new Error(
-                        `Class ${dep} is not registered in the container`
-                    );
+        const classKey = lowercase(Class.prototype.constructor.name);
+        // Check if already instantiated (lazy initialization)
+        if (this._instantiatedClasses.has(classKey)) {
+            return this._instantiatedClasses.get(classKey);
+        }
+        // Resolve dependencies first, lazily loading them if necessary
+        const dependencies: string[] = Class.__dependencies__ || [];
+        const dependencyInstances = dependencies.map((dep: string) => {
+            const lowercased = lowercase(dep);
+            if (!this._instantiatedClasses.has(lowercased)) {
+                // Lazily instantiate dependency
+                const registeredDep = this._registeredClasses.get(lowercased);
+                if (!registeredDep) {
+                    throw new Error(`Class ${dep} is not registered`);
                 }
-
-                if (instantiated) {
-                    if (instantiated instanceof ServerlessValue) {
-                        return (instantiated as ServerlessValue).__value__;
-                    } else {
-                        return instantiated;
-                    }
-                }
-
-                return this.resolve(registered!);
-            }) || [];
-        return new Class(...dependenciesInstance);
+                const instance = this.resolve(registeredDep);
+                this._instantiatedClasses.set(lowercased, instance);
+            }
+            return this._instantiatedClasses.get(lowercased);
+        });
+        // Instantiate the class after resolving its dependencies
+        const instance = new Class(...dependencyInstances);
+        this._instantiatedClasses.set(classKey, instance);
+        return instance;
     }
 
-    private _isClass(Class: any): Class is new (...args: any[]) => any {
+    private _isClass(Class: any): boolean {
         return (
             Class &&
             typeof Class === "function" &&
