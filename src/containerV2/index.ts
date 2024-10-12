@@ -19,7 +19,25 @@ export abstract class ServerlessInjectable {
 }
 
 export class ServerlessValue {
-    constructor(public __value__: any, public __key__: string) {}
+    constructor(public __value__: any, public __key__: string) {
+        return new Proxy(this, {
+            get(target, prop, receiver) {
+                if (prop === "__value__") {
+                    return target.__value__;
+                }
+                if (prop === "__key__") {
+                    return target.__key__;
+                }
+                const value = target.__value__[prop];
+                if (typeof value === "function") {
+                    // Bind the method to __value__ to maintain the correct `this` context
+                    return value.bind(target.__value__);
+                }
+                // Return the property directly if it's not a function
+                return value;
+            },
+        });
+    }
 }
 export class ServerlessContainer {
     private _registeredClasses: Map<
