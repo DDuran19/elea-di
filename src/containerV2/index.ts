@@ -45,6 +45,7 @@ export class ServerlessValue {
     }
 }
 
+type Constructor<T = any> = new (...args: any[]) => T;
 export class ServerlessContainer {
     private _registeredClasses: Map<string, any> = new Map();
     private _instantiatedClasses: Map<string, any> = new Map();
@@ -96,10 +97,7 @@ export class ServerlessContainer {
         this._instantiatedClasses.set(lowercased, instance);
         return value;
     }
-
-    resolve<T extends new (...args: any[]) => any | string>(
-        Class: T
-    ): T extends new (...args: any[]) => infer R ? R : any {
+    resolve<T>(Class: Constructor<T>): T {
         const isClass = this._isClass(Class);
         if (!isClass) {
             const value = this._instantiatedClasses.get(lowercase(Class));
