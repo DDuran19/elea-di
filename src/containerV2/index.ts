@@ -97,7 +97,9 @@ export class ServerlessContainer {
         return value;
     }
 
-    resolve(Class: any): any {
+    resolve<T extends new (...args: any[]) => any | string>(
+        Class: T
+    ): T extends new (...args: any[]) => infer R ? R : any {
         const isClass = this._isClass(Class);
         if (!isClass) {
             const value = this._instantiatedClasses.get(lowercase(Class));
@@ -106,17 +108,20 @@ export class ServerlessContainer {
             }
             throw new Error(
                 `Class ${
-                    Class.name || Class
+                    Class instanceof Function ? Class.name : Class
                 } is not registered in the container`
             );
         }
+
         const classKey = lowercase(Class.prototype.constructor.name);
+
         // Check if already instantiated (lazy initialization)
         if (this._instantiatedClasses.has(classKey)) {
             return this._instantiatedClasses.get(classKey);
         }
+
         // Resolve dependencies first, lazily loading them if necessary
-        const dependencies: string[] = Class.__dependencies__ || [];
+        const dependencies: string[] = (Class as any).__dependencies__ || [];
         const dependencyInstances = dependencies.map((dep: string) => {
             const lowercased = lowercase(dep);
             if (!this._instantiatedClasses.has(lowercased)) {
@@ -130,9 +135,11 @@ export class ServerlessContainer {
             }
             return this._instantiatedClasses.get(lowercased);
         });
+
         // Instantiate the class after resolving its dependencies
         const instance = new Class(...dependencyInstances);
         this._instantiatedClasses.set(classKey, instance);
+
         return instance;
     }
 
