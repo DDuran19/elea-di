@@ -1,3 +1,5 @@
+import { colors } from "../utils";
+
 function lowercase(str: string | ServerlessInjectable): string {
     if (typeof str === "string") {
         return str.toLowerCase();
@@ -148,6 +150,21 @@ export class ServerlessContainer {
             Class.prototype instanceof ServerlessInjectable
         );
     }
+
+    cleanup(): void {
+        this._instantiatedClasses.forEach((instance) => {
+            if (instance && typeof instance.cleanup === "function") {
+                instance.cleanup();
+            }
+        });
+
+        this._registeredClasses.clear();
+        this._instantiatedClasses.clear();
+
+        console.log(
+            `${colors.green}ServerlessContainer has been cleaned up.${colors.reset}`
+        );
+    }
 }
 
 /**
@@ -155,5 +172,20 @@ export class ServerlessContainer {
  * @returns {ServerlessContainer} The instance of the ServerlessContainer.
  */
 export function createServerlessContainer(): ServerlessContainer {
-    return new ServerlessContainer();
+    const container = new ServerlessContainer();
+    if (import.meta && "hot" in import.meta && import.meta.hot) {
+        import.meta.hot.accept(() => {
+            console.log(
+                `${colors.green}[ServerlessContainer]${colors.reset} Module updated.`
+            );
+        });
+
+        import.meta.hot.dispose(() => {
+            console.log(
+                `${colors.green}[ServerlessContainer]${colors.reset} HMR triggered. Cleaning up...`
+            );
+            container.cleanup();
+        });
+    }
+    return container;
 }
