@@ -37,6 +37,9 @@ export function simpleHash(obj: any): number {
  * }
  */
 
+/**
+ * Color codes for console output.
+ */
 export const colors = {
     reset: "\x1b[0m",
     bold: "\x1b[1m",

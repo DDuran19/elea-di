@@ -1,4 +1,4 @@
-import { colors } from "../utils";
+import { colors } from "../utils/index.js";
 
 function lowercase(str: string | ServerlessInjectable): string {
     if (typeof str === "string") {
