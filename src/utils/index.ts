@@ -22,7 +22,6 @@ export function simpleHash(obj: any): number {
 
     return Number(hash & 0xffffffffn);
 }
-export default simpleHash;
 
 /**
  *

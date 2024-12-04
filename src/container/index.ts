@@ -1,6 +1,6 @@
 import { Injectable } from "../injectable/index.js";
 import Singleton from "../singleton/index.js";
-import simpleHash from "../utils/index.js";
+import { simpleHash } from "../utils/index.js";
 
 /**
  * The Container class is responsible for managing dependency injection.

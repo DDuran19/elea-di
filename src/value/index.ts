@@ -1,5 +1,5 @@
 import container from "../container/index.js";
-import simpleHash from "../utils/index.js";
+import { simpleHash } from "../utils/index.js";
 
 /**
  * Class for managing values using a hash map.
